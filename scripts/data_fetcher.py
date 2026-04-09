@@ -3,7 +3,6 @@ import os
 import json
 from spotipy.oauth2 import SpotifyOAuth
 from google.cloud import storage
-from airflow.providers.google.cloud.hooks.gcs import GCSHook
 import spotipy
 from pathlib import Path
 from dotenv import load_dotenv
@@ -32,14 +31,9 @@ storage_client = storage.Client()
 
 
 def load_user_tokens():
-    # Initialize GCS hook
-    gcs_hook = GCSHook()
-
-    # Download file content as a string
-    file_content = gcs_hook.download(
-        bucket_name=gcs_bucket_dag, object_name="data/user_information.json")
-
-    # Parse the JSON string and return the data
+    bucket = storage_client.bucket(gcs_bucket_dag)
+    blob = bucket.blob("data/user_information.json")
+    file_content = blob.download_as_text()
     return json.loads(file_content)
 
 
